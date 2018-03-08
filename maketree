@@ -1,0 +1,2 @@
+dot -T png -o tree.png parse.txt
+google-chrome tree.png &

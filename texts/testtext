@@ -1,0 +1,5 @@
+x = 1/7
+y = (10+x)*2
+z = y - x*x
+z = z*z
+n = io.read("*number")
