@@ -1,5 +1,15 @@
-x = 1/7
-y = (10+x)*2
-z = y - x*x
-z = z*z
+print "enter a number:"
 n = io.read("*number")
+factorial = 1
+x=1
+for i = 2,n do
+  for j = 3,n do
+	for y =3, m do
+  		x = x * i
+	end
+  end
+end
+io.write("factorial of ")
+io.write(n)
+io.write(" is ")
+print(x)

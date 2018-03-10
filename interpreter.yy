@@ -97,9 +97,8 @@ stat	    : assign {$$ = $1;}
 										$$.children.push_back($2);
 										$$.children.push_back($4);}	
 			| if ENDD optspace{$$ = $1;}
-			| if else ENDD optspace {$$ = Node("ifelse","",id++); 
-											$$.children.push_back($1);
-											$$.children.push_back($2);}
+			| if else ENDD optspace {$$ = $1; 
+										$$.children.push_back($2);}
 			| FUNCTION BLANK funcname LEFT_PARA namelist RIGHT_PARA block ENDD optspace {
 						$$ = Node("Function", "", id++);
 						$$.children.push_back($3);
@@ -111,9 +110,7 @@ if			: IF exp THEN block {$$ = Node("If","",id++);
 														$$.children.push_back($2);
 														$$.children.push_back($4);}
 			;
-else		: ELSE block {$$ = Node("Else","",id++);
-							$$.children.push_back($2);
-							}
+else		: ELSE block {$$= $2;}
 
 assign		: varlist EQUALS optspace explist {$$ = Node("assign",$2,id++);
 											  $$.children.push_back($1);

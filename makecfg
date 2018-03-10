@@ -1,2 +1,2 @@
 dot -T png -o cfg.png cfg.dot
-google-chrome cfg.png &
+xdg-open cfg.png &

@@ -37,7 +37,7 @@ public:
 		vars[name] = 0.0;
 		return name;
 	}
-	
+//TODO Create list, handle unop and assign multiple variables	
 	BBlock* convert(BBlock *out)
 	{
 		if (tag == "chunk")
@@ -65,20 +65,53 @@ public:
 		}
 		if (tag == "for")
 		{
+			//for(i = 1; i<n;i++)
 			auto i = children.begin();
+			//Adding the counter (i)
 			string var = i->convertExp(out);
 			i++;
+			//Assigning a value to the counter (1)
 			string value = i->convertExp(out);
 			i++;
+			out->instructions.push_back(ThreeAd(var,"c",value,value));
+			//Setting a max-value for counter (n)
 			string upTo = i->convertExp(out);
+			i++;
+			//Declaring all the blcos for the for loop.
 			BBlock *evalBlock = new BBlock();
-			BBlock *falseBlock = new BBlock();
+			BBlock *trueBlock = new BBlock();
+			BBlock *endBlock = new BBlock();
+			
+			//Setting evaluation
 			string tmpName = this->makeNames();
 			evalBlock->instructions.push_back(ThreeAd(tmpName,"+",var,"1"));
-			evalBlock->instructions.push_back(ThreeAd("wat",tmpName, "<", upTo));
-		//TODO Add the rest of the block in forloop :D	
-			return out;
+			evalBlock->instructions.push_back(ThreeAd("cmp","<", tmpName, upTo));
+			//Setting pointers
+			out->tExit = evalBlock;
+			evalBlock->tExit = trueBlock;
+			evalBlock->fExit = endBlock;
+			trueBlock->tExit = evalBlock;
+			i->convert(trueBlock)->tExit = evalBlock;
+
+			return endBlock;
+
 		}
+	if (tag == "If")
+	{
+		auto i = children.begin();
+		i->convertExp(out);
+		i++;
+		//Create Blocks for if Statement
+		BBlock *trueExit = new BBlock();
+		BBlock *falseExit = new BBlock();
+		BBlock *endBlock = new BBlock();
+		out->tExit = trueExit;
+		out->fExit = falseExit;
+		i->convert(trueExit)->tExit = endBlock;
+		i++;
+		i->convert(falseExit)->fExit = endBlock;
+		return endBlock;
+	}
 
 	}
 	string convertExp(BBlock *out)
@@ -114,6 +147,12 @@ public:
 				out->instructions.push_back(ThreeAd(name,"/",left,right));
 			else if(value == "^")
 				out->instructions.push_back(ThreeAd(name,"^",left,right));
+			else if(value == "<")
+				out->instructions.push_back(ThreeAd(name,"<",left,right));
+			else if(value == "==")
+				out->instructions.push_back(ThreeAd(name,"==",left,right));
+			else if(value == "%")
+				out->instructions.push_back(ThreeAd(name,"%",left,right));
 			return name;
 		}		
 		else if(tag == "Number")

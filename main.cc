@@ -24,14 +24,25 @@ void dumpCFG(BBlock *start)
                 auto first = todo.begin();
                 BBlock *next = *first;
                 todo.erase(first);
-                cout << next->name << "[label=\"";
+                cout << next->name << " [label=\"";
 				next->dump();
-				cout << "\", shape=\"rect\"]";
+				cout << "\", shape=\"rect\"]" << endl;
                 done.insert(next);
                 if(next->tExit!=NULL && done.find(next->tExit)==done.end())
-                        todo.insert(next->tExit);
-                if(next->fExit!=NULL && done.find(next->fExit)==done.end())
-                        todo.insert(next->fExit);
+				{
+					cout << next->name << "->" << next->tExit->name << " [label=\"true\"]"<< endl;
+					todo.insert(next->tExit);
+                }
+				else if(next->tExit!=NULL)
+					cout << next->name << "->" << next->tExit->name << " [label=\"true\"]"<< endl;
+					
+				if(next->fExit!=NULL && done.find(next->fExit)==done.end())
+                {
+					cout << next->name << "->" << next->fExit->name << " [label=\"false\"]" << endl;
+					todo.insert(next->fExit);
+				}
+				else if(next->fExit!=NULL)
+					cout << next->name << "->" << next->tExit->name << " [label=\"false\"]"<< endl;
         }
 		cout << endl << "}\n";
 }
