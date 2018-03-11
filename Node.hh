@@ -37,7 +37,6 @@ public:
 		vars[name] = 0.0;
 		return name;
 	}
-//TODO Create list, handle unop and assign multiple variables	
 	BBlock* convert(BBlock *out)
 	{
 		if (tag == "chunk")
@@ -50,9 +49,14 @@ public:
 		}
 		if (tag == "assign")
 		{
-			string left = children.front().convertExp(out);
-			string right = children.back().convertExp(out);
+			auto exp = children.back().children.begin();
+			for(auto var: children.front().children)
+			{
+			string left = var.convertExp(out);
+			string right = exp->convertExp(out);
 			out->instructions.push_back(ThreeAd(left,"c",right,right));
+			exp++;
+			}
 			return out;
 		}
 		if (tag == "funccall")
@@ -96,22 +100,43 @@ public:
 			return endBlock;
 
 		}
-	if (tag == "If")
-	{
-		auto i = children.begin();
-		i->convertExp(out);
-		i++;
-		//Create Blocks for if Statement
-		BBlock *trueExit = new BBlock();
-		BBlock *falseExit = new BBlock();
-		BBlock *endBlock = new BBlock();
-		out->tExit = trueExit;
-		out->fExit = falseExit;
-		i->convert(trueExit)->tExit = endBlock;
-		i++;
-		i->convert(falseExit)->fExit = endBlock;
-		return endBlock;
-	}
+		if (tag == "If")
+		{
+			int size = children.size();
+			auto i = children.begin();
+			i->convertExp(out);
+			i++;
+			//Create Blocks for if Statement
+			BBlock *trueExit = new BBlock();
+			BBlock *falseExit = new BBlock();
+			BBlock *endBlock = new BBlock();
+			out->tExit = trueExit;
+			out->fExit = falseExit;
+			i->convert(trueExit)->tExit = endBlock;
+			if(size>2)
+			{
+				i++;
+				i->convert(falseExit)->fExit = endBlock;
+			}
+			else
+			{
+				out->fExit = endBlock;
+			}
+			return endBlock;
+		}
+		if (tag == "Repeat")
+		{
+			BBlock *trueExit = new BBlock();
+			BBlock *evalBlock = new BBlock();
+			BBlock *endBlock = new BBlock();
+			out->tExit = trueExit;
+
+			children.front().convert(trueExit)->tExit = evalBlock;
+			children.back().convertExp(evalBlock);
+			evalBlock->tExit = trueExit;
+			evalBlock->fExit = endBlock;
+			return endBlock;
+		}
 
 	}
 	string convertExp(BBlock *out)
@@ -128,8 +153,25 @@ public:
 				varName += "." + children.front().convertExp(out);
 			return varName;
 		}
+		else if (tag == "Array")
+		{
+			return children.front().convertExp(out) + "[" + children.back().convertExp(out) + "]";
+		}
 		else if (tag == "explist")
 			return children.front().convertExp(out);
+		else if (tag == "list")
+		{
+			string name = this->makeNames();
+			Node explist = children.front();
+			int arrSize = explist.children.size();
+			out->instructions.push_back(ThreeAd(name,"list",to_string(arrSize), to_string(arrSize)));
+			int index = 0;
+			for(auto i = explist.children.begin(); i != explist.children.end(); i++, index++)
+			{
+				out->instructions.push_back(ThreeAd(name,"[]",to_string(index),i->value));
+			}
+			return name;
+		}
 		else if(tag == "args")
 			return children.front().convertExp(out);
 		else if(tag == "OP")
@@ -149,16 +191,22 @@ public:
 				out->instructions.push_back(ThreeAd(name,"^",left,right));
 			else if(value == "<")
 				out->instructions.push_back(ThreeAd(name,"<",left,right));
+			else if(value == ">")
+				out->instructions.push_back(ThreeAd(name,">",left,right));
 			else if(value == "==")
 				out->instructions.push_back(ThreeAd(name,"==",left,right));
 			else if(value == "%")
 				out->instructions.push_back(ThreeAd(name,"%",left,right));
+			else if (value == "#")
+				out->instructions.push_back(ThreeAd(name,"#",left,left));
 			return name;
 		}		
 		else if(tag == "Number")
 			return value;
 		else if(tag == "String")
 			return  value;
+		else if(tag == "bool")
+			return value;
 		else if(tag == "funccall")
 		{
 			string name = this->makeNames();
