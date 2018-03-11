@@ -13,6 +13,7 @@ void yy::parser::error(std::string const&err)
   std::cout << "It's one of the bad ones... " << err << std::endl;
 }
 map<string,double> vars;
+map <string, BBlock*[2]> userfuncs;
 void dumpCFG(BBlock *start)
 {
 		cout << "digraph {\n";
@@ -61,6 +62,8 @@ int main(int argc, char **argv)
 		std::cout << "}" << std::endl;
 		freopen("cfg.dot","w",stdout);
 		dumpCFG(block);
+		dumpCFG(userfuncs["fibonacci"][0]);
+
 	}
 
 	

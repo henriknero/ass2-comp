@@ -36,6 +36,6 @@ in											{return yy::parser::make_IN(yytext);}
 [a-zA-Z_][a-zA-Z0-9_]*						{return yy::parser::make_NAME(yytext);}
 ["]											{BEGIN(STRING);}
 <STRING>["]									{BEGIN(0);}
-<STRING>[*a-zA-Z _:\\n]*					{return yy::parser::make_STRING(yytext);}
+<STRING>[.,*a-zA-Z _:\\n]*					{return yy::parser::make_STRING(yytext);}
 <<EOF>>       								return yy::parser::make_END();
 %%

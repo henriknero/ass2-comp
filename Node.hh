@@ -6,6 +6,7 @@
 #include <math.h>
 #include "BlockThree.hh"
 extern map <string,double> vars;
+extern map <string,BBlock*[2]> userfuncs;
 class Node {
 private:
 	static int eCounter;
@@ -59,12 +60,36 @@ public:
 			}
 			return out;
 		}
+		if (tag == "Function")
+		{
+			auto i = children.begin();
+			string functionName = i->value;
+			i++;
+			string parameter = i->children.front().value;
+			i++;
+			BBlock *startFunc = new BBlock();
+			BBlock *endFunc = i->convert(startFunc);
+			userfuncs[functionName][0] = startFunc;
+			userfuncs[functionName][1] = endFunc;
+			return out;
+		}
 		if (tag == "funccall")
 		{
 			string left = "_unused";
 			string funcname = children.front().convertExp(out);
-			string right = children.back().convertExp(out);
-			out->instructions.push_back(ThreeAd(left,"call",funcname, right));
+			if (children.back().tag == "explist")
+			{
+				for (auto i: children.back().children)
+				{
+					string right = i.convertExp(out);
+					out->instructions.push_back(ThreeAd(left,"call",funcname, right));
+				}
+			}
+			else
+			{
+				string right = children.back().convertExp(out);
+				out->instructions.push_back(ThreeAd(left,"call",funcname, right));
+			}
 			return out;
 		}
 		if (tag == "for")
@@ -136,6 +161,12 @@ public:
 			evalBlock->tExit = trueExit;
 			evalBlock->fExit = endBlock;
 			return endBlock;
+		}
+		if (tag == "Return")
+		{
+			string returnVal = children.front().convertExp(out);
+			out->instructions.push_back(ThreeAd("return","c",returnVal,returnVal));
+			return out;
 		}
 
 	}
