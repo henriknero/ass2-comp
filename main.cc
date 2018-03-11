@@ -62,7 +62,6 @@ int main(int argc, char **argv)
 		std::cout << "}" << std::endl;
 		freopen("cfg.dot","w",stdout);
 		dumpCFG(block);
-		dumpCFG(userfuncs["fibonacci"][0]);
 
 	}
 
