@@ -54,6 +54,7 @@ public:
 			for(auto var: children.front().children)
 			{
 			string left = var.convertExp(out);
+			vars[left] = 0.0;
 			string right = exp->convertExp(out);
 			out->instructions.push_back(ThreeAd(left,"c",right,right));
 			exp++;
@@ -98,6 +99,7 @@ public:
 			auto i = children.begin();
 			//Adding the counter (i)
 			string var = i->convertExp(out);
+			vars[var] = 0.0;
 			i++;
 			//Assigning a value to the counter (1)
 			string value = i->convertExp(out);
@@ -113,15 +115,16 @@ public:
 			
 			//Setting evaluation
 			string tmpName = this->makeNames();
-			evalBlock->instructions.push_back(ThreeAd(tmpName,"+",var,"1"));
-			evalBlock->instructions.push_back(ThreeAd("cmp","<", tmpName, upTo));
+			evalBlock->instructions.push_back(ThreeAd("cmp","<=", var, upTo));
 			//Setting pointers
 			out->tExit = evalBlock;
 			evalBlock->tExit = trueBlock;
 			evalBlock->fExit = endBlock;
 			trueBlock->tExit = evalBlock;
-			i->convert(trueBlock)->tExit = evalBlock;
-
+			BBlock *temp = i->convert(trueBlock);
+			temp->tExit = evalBlock;
+			temp->instructions.push_back(ThreeAd(tmpName,"+",var,"1"));
+			temp->instructions.push_back(ThreeAd(var, "c", tmpName,tmpName));	
 			return endBlock;
 
 		}
@@ -235,7 +238,7 @@ public:
 		else if(tag == "Number")
 			return value;
 		else if(tag == "String")
-			return  value;
+			return  "\"" + value +  "\"";
 		else if(tag == "bool")
 			return value;
 		else if(tag == "funccall")

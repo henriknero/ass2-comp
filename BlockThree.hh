@@ -21,18 +21,38 @@ public:
         void dump()
         {
                 cout << name << " <- ";
-                cout << lhs << " " << op << " " << rhs << "\\n";
+				if(rhs[0] == '"')
+					cout << lhs << " " << op << " " << rhs.substr(1,rhs.size()-2) << "\\n";
+				else
+					cout << lhs << " " << op << " " << rhs << "\\n";
         }
 		void dumpC()
 		{
-			if (op == "=")
+			if (op == "==")
 				cout << "if(" << lhs << "==" << rhs << ") ";
+			if (op == "<=")
+				cout << "if(" << lhs << "<=" << rhs << ") ";
 			else if (op == "+")
 				cout << name << " = " << lhs << " + " << rhs << ";" << endl;
+			else if (op == "-")
+				cout << name << " = " << lhs << " - " << rhs << ";" << endl;
 			else if (op == "c")
 				cout << name << " = " << lhs << ";" << endl;
 			else if (op == "*")
 				cout << name << " = " << lhs << " * " << rhs << ";" << endl;
+			else if (op == "/")
+				cout << name << " = " << lhs << "/ double(" << rhs << ");" << endl;
+			else if (op == "^")
+				cout << name << " = pow(" << lhs <<"," <<  rhs << ");" << endl;
+			else if (op == "call")
+			{
+				if(lhs == "print")
+					cout << "cout << " << rhs << " << endl;" << endl;
+				else if (lhs == "io.read")
+					cout << "char temp[256];" << endl <<"fgets(temp,255,stdin);" << endl << name << "= atof(temp);" << endl;	
+				else if (lhs == "io.write")
+					cout << "cout << " << rhs << ";" << endl;
+			}
 			else
 			{
             	cout << name << " <- " ; 

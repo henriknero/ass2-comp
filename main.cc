@@ -47,6 +47,32 @@ void dumpCFG(BBlock *start)
         }
 		cout << endl << "}\n";
 }
+void dumpCode(BBlock *start)
+{
+	cout << "#include <iostream>" << endl;
+	cout << "#include <stdio.h>" << endl;
+	cout << "#include <math.h>" << endl;
+	cout << "using namespace std;" << endl;
+    cout << "int main()\n{" << endl;
+    for(auto i:vars){
+        cout << "double " << i.first << " = " << i.second << ";" << endl;;
+    }
+    set<BBlock *> done, todo;
+    todo.insert(start);
+    while(todo.size()>0)
+    {
+        auto first = todo.begin();
+        BBlock *next = *first;
+        todo.erase(first);
+        next->dumpC();
+        done.insert(next);
+        if(next->tExit!=NULL && done.find(next->tExit)==done.end())
+            todo.insert(next->tExit);
+        if(next->fExit!=NULL && done.find(next->fExit)==done.end())
+            todo.insert(next->fExit);
+    }
+    cout << "}" << endl;
+}
 
 int main(int argc, char **argv)
 {
@@ -62,7 +88,8 @@ int main(int argc, char **argv)
 		std::cout << "}" << std::endl;
 		freopen("cfg.dot","w",stdout);
 		dumpCFG(block);
-
+		freopen("target.cc","w", stdout);
+		dumpCode(block);
 	}
 
 	

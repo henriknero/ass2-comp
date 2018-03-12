@@ -7,4 +7,4 @@ interpreter.tab.cc: interpreter.yy
 lex.yy.c: interpreter.ll interpreter.tab.cc
 	flex interpreter.ll
 clean: 
-	rm -f interpreter.tab.* lex.yy.c* parser comp parse.txt tree.png cfg.* report.txt
+	rm -f interpreter.tab.* lex.yy.c* parser comp parse.txt tree.png cfg.* target* report.txt
