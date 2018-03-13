@@ -10,7 +10,7 @@
 for											{return yy::parser::make_FOR(yytext);}
 [+%<>\-]|<=|>=|==|~=|and|or|\.\.|#|not		{return yy::parser::make_LOW_OP(yytext);}
 [ \t\n]*									{return yy::parser::make_BLANK(yytext);}	
-[0-9]+										{return yy::parser::make_NUMERIC(yytext);}
+[0-9]+\.?[0-9]*								{return yy::parser::make_NUMERIC(yytext);}
 [(]											{return yy::parser::make_LEFT_PARA(yytext);}	
 [)]											{return yy::parser::make_RIGHT_PARA(yytext);}
 [{]											{return yy::parser::make_LCURL(yytext);}

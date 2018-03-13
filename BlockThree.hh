@@ -30,9 +30,19 @@ public:
 		{
 			if (op == "==")
 				cout << "if(" << lhs << "==" << rhs << ") ";
-			if (op == "<=")
+			else if (op == "<=")
 				cout << "if(" << lhs << "<=" << rhs << ") ";
-			else if (op == "+")
+			else if (op == ">")
+				cout << "if(" << lhs << ">" << rhs << ") ";
+			else if (op == "list")
+				cout << "double " << name << "["<< lhs << "];" << endl;
+			else if (op == "[]")
+				cout << name << "[" << lhs << "]" << "=" << rhs << ";" <<  endl;
+			else if (op == "l")
+				cout << "memcpy(&" << name << ",&" << lhs << ",sizeof(" << rhs << "));" << endl;
+			else if (op == "#")
+				cout << name << " = sizeof(" << lhs << ")/sizeof(" << lhs << "[0]);" << endl;  
+			else if (op == "+")//Arithmetics
 				cout << name << " = " << lhs << " + " << rhs << ";" << endl;
 			else if (op == "-")
 				cout << name << " = " << lhs << " - " << rhs << ";" << endl;
@@ -42,9 +52,11 @@ public:
 				cout << name << " = " << lhs << " * " << rhs << ";" << endl;
 			else if (op == "/")
 				cout << name << " = " << lhs << "/ double(" << rhs << ");" << endl;
+			else if (op == "%")
+				cout << name << " = fmod(" << lhs << "," << rhs << ");" << endl;
 			else if (op == "^")
 				cout << name << " = pow(" << lhs <<"," <<  rhs << ");" << endl;
-			else if (op == "call")
+			else if (op == "call")//Functinons
 			{
 				if(lhs == "print")
 					cout << "cout << " << rhs << " << endl;" << endl;

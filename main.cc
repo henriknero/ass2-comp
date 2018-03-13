@@ -13,6 +13,7 @@ void yy::parser::error(std::string const&err)
   std::cout << "It's one of the bad ones... " << err << std::endl;
 }
 map<string,double> vars;
+map<string,double> lists;
 map <string, BBlock*[2]> userfuncs;
 void dumpCFG(BBlock *start)
 {
@@ -51,11 +52,16 @@ void dumpCode(BBlock *start)
 {
 	cout << "#include <iostream>" << endl;
 	cout << "#include <stdio.h>" << endl;
+	cout << "#include <stdlib.h>" << endl;
+	cout << "#include <string.h>" << endl;
 	cout << "#include <math.h>" << endl;
 	cout << "using namespace std;" << endl;
     cout << "int main()\n{" << endl;
     for(auto i:vars){
         cout << "double " << i.first << " = " << i.second << ";" << endl;;
+    }
+    for(auto i:lists){
+        cout << "double " << i.first << "["<< i.second << "];" << endl;;
     }
     set<BBlock *> done, todo;
     todo.insert(start);

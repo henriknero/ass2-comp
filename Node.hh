@@ -6,6 +6,7 @@
 #include <math.h>
 #include "BlockThree.hh"
 extern map <string,double> vars;
+extern map <string,double> lists;
 extern map <string,BBlock*[2]> userfuncs;
 class Node {
 private:
@@ -38,6 +39,11 @@ public:
 		vars[name] = 0.0;
 		return name;
 	}
+	string makeList()
+	{
+		string name = "_t" + to_string(eCounter++);
+		return name;
+	}
 	BBlock* convert(BBlock *out)
 	{
 		if (tag == "chunk")
@@ -50,14 +56,57 @@ public:
 		}
 		if (tag == "assign")
 		{
-			auto exp = children.back().children.begin();
-			for(auto var: children.front().children)
+			if(children.front().children.size()>1)
 			{
-			string left = var.convertExp(out);
-			vars[left] = 0.0;
-			string right = exp->convertExp(out);
-			out->instructions.push_back(ThreeAd(left,"c",right,right));
-			exp++;
+				map<string, string> tempvars;
+
+				auto exp = children.back().children.front().children.begin();
+				for(auto var: children.front().children)
+				{
+					string tempName = this->makeNames();
+					string tempVar = var.convertExp(out);
+					string tempExp = exp->convertExp(out);
+					tempvars[tempVar] = tempName;
+					out->instructions.push_back(ThreeAd(tempName,"c",tempExp,tempExp));
+					exp++;
+				}
+				for (auto i: tempvars)
+					out->instructions.push_back(ThreeAd(i.first, "c", i.second, i.second));
+		//		auto exp = children.back().children.front().children.begin();
+/*				for(auto var: children.front().children)
+				{
+					string left = var.convertExp(out);
+					string right = exp->convertExp(out);
+					cout << left << " : " << right << endl;
+					if(exp->tag == "list")
+					{
+						lists[left] = exp->children.front().children.size();
+						out->instructions.push_back(ThreeAd(left,"l",right,right));
+					}
+					else
+					{
+						if(left.find("[") == string::npos)
+							vars[left] = 0.0;
+						out->instructions.push_back(ThreeAd(left,"c",right,right));
+					}
+					exp++;
+				}
+*/			}
+			else
+			{
+				string left =children.front().convertExp(out);
+				string right = children.back().convertExp(out);
+				if(children.back().children.front().tag == "list")
+				{	
+					lists[left] = children.back().children.front().children.front().children.size();
+					out->instructions.push_back(ThreeAd(left,"l",right,right));
+				}
+				else
+				{
+					if(left.find("[") == string::npos)
+						vars[left] = 0.0;
+					out->instructions.push_back(ThreeAd(left,"c",right,right));
+				}
 			}
 			return out;
 		}
@@ -115,7 +164,7 @@ public:
 			
 			//Setting evaluation
 			string tmpName = this->makeNames();
-			evalBlock->instructions.push_back(ThreeAd("cmp","<=", var, upTo));
+			evalBlock->instructions.push_back(ThreeAd("_cmp","<=", var, upTo));
 			//Setting pointers
 			out->tExit = evalBlock;
 			evalBlock->tExit = trueBlock;
@@ -144,7 +193,7 @@ public:
 			if(size>2)
 			{
 				i++;
-				i->convert(falseExit)->fExit = endBlock;
+				i->convert(falseExit)->tExit = endBlock;
 			}
 			else
 			{
@@ -158,11 +207,12 @@ public:
 			BBlock *evalBlock = new BBlock();
 			BBlock *endBlock = new BBlock();
 			out->tExit = trueExit;
-
+			//Chunk
 			children.front().convert(trueExit)->tExit = evalBlock;
+			//Condition
 			children.back().convertExp(evalBlock);
-			evalBlock->tExit = trueExit;
-			evalBlock->fExit = endBlock;
+			evalBlock->tExit = endBlock;
+			evalBlock->fExit = trueExit;
 			return endBlock;
 		}
 		if (tag == "Return")
@@ -189,13 +239,13 @@ public:
 		}
 		else if (tag == "Array")
 		{
-			return children.front().convertExp(out) + "[" + children.back().convertExp(out) + "]";
+			return children.front().convertExp(out) + "[int(" + children.back().convertExp(out) + ")]";
 		}
 		else if (tag == "explist")
 			return children.front().convertExp(out);
 		else if (tag == "list")
 		{
-			string name = this->makeNames();
+			string name = this->makeList();
 			Node explist = children.front();
 			int arrSize = explist.children.size();
 			out->instructions.push_back(ThreeAd(name,"list",to_string(arrSize), to_string(arrSize)));
