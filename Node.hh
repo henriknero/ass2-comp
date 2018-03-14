@@ -7,7 +7,7 @@
 #include "BlockThree.hh"
 extern map <string,double> vars;
 extern map <string,double> lists;
-extern map <string,BBlock*[2]> userfuncs;
+extern map <string,BBlock*> userfuncs;
 class Node {
 private:
 	static int eCounter;
@@ -119,8 +119,8 @@ public:
 			i++;
 			BBlock *startFunc = new BBlock();
 			BBlock *endFunc = i->convert(startFunc);
-			userfuncs[functionName][0] = startFunc;
-			userfuncs[functionName][1] = endFunc;
+			functionName = functionName + "(double " + parameter + ")"; 
+			userfuncs[functionName] = startFunc;
 			return out;
 		}
 		if (tag == "funccall")
@@ -218,7 +218,7 @@ public:
 		if (tag == "Return")
 		{
 			string returnVal = children.front().convertExp(out);
-			out->instructions.push_back(ThreeAd("return","c",returnVal,returnVal));
+			out->instructions.push_back(ThreeAd("return","ret",returnVal,returnVal));
 			return out;
 		}
 

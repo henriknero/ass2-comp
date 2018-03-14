@@ -14,7 +14,7 @@ void yy::parser::error(std::string const&err)
 }
 map<string,double> vars;
 map<string,double> lists;
-map <string, BBlock*[2]> userfuncs;
+map <string, BBlock*> userfuncs;
 void dumpCFG(BBlock *start)
 {
 		cout << "digraph {\n";
@@ -31,20 +31,14 @@ void dumpCFG(BBlock *start)
 				cout << "\", shape=\"rect\"]" << endl;
                 done.insert(next);
                 if(next->tExit!=NULL && done.find(next->tExit)==done.end())
-				{
-					cout << next->name << "->" << next->tExit->name << " [label=\"true\"]"<< endl;
 					todo.insert(next->tExit);
-                }
-				else if(next->tExit!=NULL)
-					cout << next->name << "->" << next->tExit->name << " [label=\"true\"]"<< endl;
-					
 				if(next->fExit!=NULL && done.find(next->fExit)==done.end())
-                {
-					cout << next->name << "->" << next->fExit->name << " [label=\"false\"]" << endl;
 					todo.insert(next->fExit);
-				}
-				else if(next->fExit!=NULL)
-					cout << next->name << "->" << next->tExit->name << " [label=\"false\"]"<< endl;
+				
+				if(next->tExit!=NULL)
+					cout << next->name << "->" << next->tExit->name << " [label=\"true\"]"<< endl;
+				if(next->fExit!=NULL)
+					cout << next->name << "->" << next->fExit->name << " [label=\"false\"]" << endl;
         }
 		cout << endl << "}\n";
 }
@@ -56,7 +50,33 @@ void dumpCode(BBlock *start)
 	cout << "#include <string.h>" << endl;
 	cout << "#include <math.h>" << endl;
 	cout << "using namespace std;" << endl;
-    cout << "int main()\n{" << endl;
+    for (auto i: userfuncs)
+	{
+	cout << "double " << i.first << "{" << endl;
+    for(auto i:vars){
+        if(i.first[0] == '_')
+			cout << "double " << i.first << " = " << i.second << ";" << endl;;
+    }
+    for(auto i:lists){
+        cout << "double " << i.first << "["<< i.second << "];" << endl;;
+    }
+    set<BBlock *> done, todo;
+    todo.insert(i.second);
+    while(todo.size()>0)
+    {
+        auto first = todo.begin();
+        BBlock *next = *first;
+        todo.erase(first);
+        next->dumpC();
+        done.insert(next);
+        if(next->tExit!=NULL && done.find(next->tExit)==done.end())
+            todo.insert(next->tExit);
+        if(next->fExit!=NULL && done.find(next->fExit)==done.end())
+            todo.insert(next->fExit);
+    }
+	cout << "}" << endl;
+	}
+	cout << "int main()\n{" << endl;
     for(auto i:vars){
         cout << "double " << i.first << " = " << i.second << ";" << endl;;
     }

@@ -34,6 +34,8 @@ public:
 				cout << "if(" << lhs << "<=" << rhs << ") ";
 			else if (op == ">")
 				cout << "if(" << lhs << ">" << rhs << ") ";
+			else if (op == "<")
+				cout << "if(" << lhs << "<" << rhs << ") ";
 			else if (op == "list")
 				cout << "double " << name << "["<< lhs << "];" << endl;
 			else if (op == "[]")
@@ -64,7 +66,11 @@ public:
 					cout << "char temp[256];" << endl <<"fgets(temp,255,stdin);" << endl << name << "= atof(temp);" << endl;	
 				else if (lhs == "io.write")
 					cout << "cout << " << rhs << ";" << endl;
+				else
+					cout << name << " = " << lhs << "(" << rhs << ");" << endl;
 			}
+			else if (op == "ret")
+				cout << "return " << lhs << ";" << endl;
 			else
 			{
             	cout << name << " <- " ; 
