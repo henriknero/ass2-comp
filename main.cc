@@ -18,6 +18,32 @@ map <string, BBlock*> userfuncs;
 void dumpCFG(BBlock *start)
 {
 		cout << "digraph {\n";
+		for(auto i: userfuncs)
+		{
+			
+	        set<BBlock *> done, todo;
+	        todo.insert(i.second);
+	        while(todo.size()>0)
+	        {
+	            // Pop an arbitrary element from todo set
+	            auto first = todo.begin();
+	            BBlock *next = *first;
+	            todo.erase(first);
+	            cout << next->name << " [label=\"";
+				next->dump();
+				cout << "\", shape=\"rect\"]" << endl;
+	            done.insert(next);
+	            if(next->tExit!=NULL && done.find(next->tExit)==done.end())
+					todo.insert(next->tExit);
+				if(next->fExit!=NULL && done.find(next->fExit)==done.end())
+					todo.insert(next->fExit);
+				
+				if(next->tExit!=NULL)
+					cout << next->name << "->" << next->tExit->name << " [label=\"true\"]"<< endl;
+				if(next->fExit!=NULL)
+					cout << next->name << "->" << next->fExit->name << " [label=\"false\"]" << endl;
+	        }
+		}
         set<BBlock *> done, todo;
         todo.insert(start);
         while(todo.size()>0)
