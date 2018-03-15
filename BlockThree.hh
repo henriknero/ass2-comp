@@ -7,8 +7,11 @@
 #include <iostream>
 #include <map>
 using namespace std;
+extern map<string,double> vars;
 class ThreeAd
 {
+private:
+static int tCounter;
 public:
         string name,lhs,rhs;
         string op;
@@ -17,7 +20,10 @@ public:
                 name(name), op(op), lhs(lhs), rhs(rhs)
         {
         }
-
+		string makeNames()
+		{
+			return "_n" + to_string(tCounter++);
+		}
         void dump()
         {
                 cout << name << " <- ";
@@ -45,27 +51,110 @@ public:
 			else if (op == "#")
 				cout << name << " = sizeof(" << lhs << ")/sizeof(" << lhs << "[0]);" << endl;  
 			else if (op == "+")//Arithmetics
-				cout << name << " = " << lhs << " + " << rhs << ";" << endl;
+			{
+				//name = left + right
+				string left = lhs;
+				string right = rhs;
+				if(vars.find(lhs) == vars.end())
+					left = "n"+lhs;
+				if(vars.find(rhs) == vars.end())
+					right = "n"+rhs;
+				cout << "asm(" << endl;
+				cout << "	\"movsd \%[" << left << "], \%\%xmm0 \\n\\t\""<< endl;
+				cout << "	\"movsd \%[" << right << "], \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"addsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
+				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
+				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
+				if(left != right)
+					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
+				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				cout << ");" << endl;
+			}
 			else if (op == "-")
-				cout << name << " = " << lhs << " - " << rhs << ";" << endl;
+			{
+				string left = lhs;
+				string right = rhs;
+				if(vars.find(lhs) == vars.end())
+					left = "n"+lhs;
+				if(vars.find(rhs) == vars.end())
+					right = "n"+rhs;
+				cout << "asm(" << endl;
+				cout << "	\"movsd \%[" << right << "], \%\%xmm0 \\n\\t\""<< endl;
+				cout << "	\"movsd \%[" << left << "], \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"subsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
+				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
+				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
+				if(left != right)
+					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
+				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				cout << ");" << endl;
+				//cout << name << " = " << lhs << " - " << rhs << ";" << endl;
+			}
 			else if (op == "c")
 				cout << name << " = " << lhs << ";" << endl;
 			else if (op == "*")
-				cout << name << " = " << lhs << " * " << rhs << ";" << endl;
+			{
+				string left = lhs;
+				string right = rhs;
+				if(vars.find(lhs) == vars.end())
+					left = "n"+lhs;
+				if(vars.find(rhs) == vars.end())
+					right = "n"+rhs;
+				cout << "asm(" << endl;
+				cout << "	\"movsd \%[" << left << "], \%\%xmm0 \\n\\t\""<< endl;
+				cout << "	\"movsd \%[" << right << "], \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"mulsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
+				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
+				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
+				if(left != right)
+					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
+				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				cout << ");" << endl;
+				//cout << name << " = " << lhs << " * " << rhs << ";" << endl;
+			}
 			else if (op == "/")
-				cout << name << " = " << lhs << "/ double(" << rhs << ");" << endl;
+			{
+				string left = lhs;
+				string right = rhs;
+				if(vars.find(lhs) == vars.end())
+					left = "n"+lhs;
+				if(vars.find(rhs) == vars.end())
+					right = "n"+ rhs;
+				cout << "asm(" << endl;
+				cout << "	\"movsd \%[" << right << "], \%\%xmm0 \\n\\t\""<< endl;
+				cout << "	\"movsd \%[" << left << "], \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"divsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
+				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
+				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
+				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
+				if(left != right)
+					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
+				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				cout << ");" << endl;
+			}
 			else if (op == "%")
 				cout << name << " = fmod(" << lhs << "," << rhs << ");" << endl;
 			else if (op == "^")
-				cout << name << " = pow(" << lhs <<"," <<  rhs << ");" << endl;
+				cout << name << " = pow(double(" << lhs <<"),double(" <<  rhs << "));" << endl;
 			else if (op == "call")//Functinons
 			{
 				if(lhs == "print")
-					cout << "cout << " << rhs << " << endl;" << endl;
+				{
+					if(rhs[0] == '"')
+						cout << "printf(" << rhs.insert(rhs.size()-1,"\\n") << ");" << endl;
+					else
+						cout << "printf(\"\%.16g\\n\"," << rhs << ");" << endl;
+				}
 				else if (lhs == "io.read")
 					cout << "char temp[256];" << endl <<"fgets(temp,255,stdin);" << endl << name << "= atof(temp);" << endl;	
 				else if (lhs == "io.write")
-					cout << "cout << " << rhs << ";" << endl;
+					if(rhs[0] == '"')
+						cout << "printf(" << rhs << ");" << endl;
+					else
+						cout << "printf(\"\%.16g\"," << rhs << ");" << endl;
 				else
 					cout << name << " = " << lhs << "(" << rhs << ");" << endl;
 			}

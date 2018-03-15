@@ -72,26 +72,7 @@ public:
 				}
 				for (auto i: tempvars)
 					out->instructions.push_back(ThreeAd(i.first, "c", i.second, i.second));
-		//		auto exp = children.back().children.front().children.begin();
-/*				for(auto var: children.front().children)
-				{
-					string left = var.convertExp(out);
-					string right = exp->convertExp(out);
-					cout << left << " : " << right << endl;
-					if(exp->tag == "list")
-					{
-						lists[left] = exp->children.front().children.size();
-						out->instructions.push_back(ThreeAd(left,"l",right,right));
-					}
-					else
-					{
-						if(left.find("[") == string::npos)
-							vars[left] = 0.0;
-						out->instructions.push_back(ThreeAd(left,"c",right,right));
-					}
-					exp++;
-				}
-*/			}
+			}
 			else
 			{
 				string left =children.front().convertExp(out);
@@ -239,7 +220,7 @@ public:
 		}
 		else if (tag == "Array")
 		{
-			return children.front().convertExp(out) + "[int(" + children.back().convertExp(out) + ")]";
+			return children.front().convertExp(out) + "[int(" + children.back().convertExp(out) + ")-1]";
 		}
 		else if (tag == "explist")
 			return children.front().convertExp(out);

@@ -8,6 +8,7 @@ extern FILE *yyin;
 
 int Node::eCounter = 0;
 int BBlock::nCounter = 0;
+int ThreeAd::tCounter = 0;
 void yy::parser::error(std::string const&err)
 {
   std::cout << "It's one of the bad ones... " << err << std::endl;
@@ -70,12 +71,10 @@ void dumpCFG(BBlock *start)
 }
 void dumpCode(BBlock *start)
 {
-	cout << "#include <iostream>" << endl;
 	cout << "#include <stdio.h>" << endl;
 	cout << "#include <stdlib.h>" << endl;
 	cout << "#include <string.h>" << endl;
 	cout << "#include <math.h>" << endl;
-	cout << "using namespace std;" << endl;
     for (auto i: userfuncs)
 	{
 	cout << "double " << i.first << "{" << endl;
