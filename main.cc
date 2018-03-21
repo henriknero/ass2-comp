@@ -13,9 +13,12 @@ void yy::parser::error(std::string const&err)
 {
   std::cout << "It's one of the bad ones... " << err << std::endl;
 }
+map<string,string> asmWrite;
+map<string,string> asmRead;
 map<string,double> vars;
 map<string,double> lists;
-map <string, BBlock*> userfuncs;
+map<string, BBlock*> userfuncs;
+map<string,string> usedRegisters;
 void dumpCFG(BBlock *start)
 {
 		cout << "digraph {\n";

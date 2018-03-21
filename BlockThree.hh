@@ -8,6 +8,9 @@
 #include <map>
 using namespace std;
 extern map<string,double> vars;
+extern map<string,string> asmWrite;
+extern map<string,string> asmRead;
+extern map<string,string> usedRegisters;
 class ThreeAd
 {
 private:
@@ -23,6 +26,34 @@ public:
 		string makeNames()
 		{
 			return "_n" + to_string(tCounter++);
+		}
+		void dumpClobber()
+		{
+			cout << " 	: ";
+			for (auto i: asmWrite)
+			{
+				cout << "[" << i.first << "] \"=x\" (" << i.second << ")";
+				if(i != *asmWrite.rbegin())
+					cout << ",\n\t  ";
+			}
+			cout << endl << " 	: ";
+			for (auto i: asmRead)
+			{
+				cout << "[" << i.first << "] \"x\" (double(" << i.second << "))";
+				if(i != *asmRead.rbegin())
+					cout << ",\n\t  ";
+			}
+			cout << endl << " 	: ";
+			for (auto i: usedRegisters)
+			{
+				cout << "\"" << i.first << "\"";
+				if(i != *usedRegisters.rbegin())
+					cout << ", ";
+			}
+			cout << endl;
+			asmWrite.clear();
+			asmRead.clear();
+			usedRegisters.clear();
 		}
         void dump()
         {
@@ -64,13 +95,13 @@ public:
 				cout << "	\"movsd \%[" << right << "], \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"addsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
-				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
-				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
-				if(left != right)
-					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
-				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				asmWrite[name] = name;
+				asmRead[left] = lhs;
+				asmRead[right] = rhs;
+				usedRegisters["xmm0"] = "", usedRegisters["xmm1"] = "", usedRegisters["cc"] = "";
+				dumpClobber();
 				cout << ");" << endl;
-			}
+			} 
 			else if (op == "-")
 			{
 				string left = lhs;
@@ -84,13 +115,12 @@ public:
 				cout << "	\"movsd \%[" << left << "], \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"subsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
-				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
-				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
-				if(left != right)
-					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
-				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				asmWrite[name] = name;
+				asmRead[left] = lhs;
+				asmRead[right] = rhs;
+				usedRegisters["xmm0"] = "", usedRegisters["xmm1"] = "", usedRegisters["cc"] = "";
+				dumpClobber();
 				cout << ");" << endl;
-				//cout << name << " = " << lhs << " - " << rhs << ";" << endl;
 			}
 			else if (op == "c")
 				cout << name << " = " << lhs << ";" << endl;
@@ -107,13 +137,12 @@ public:
 				cout << "	\"movsd \%[" << right << "], \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"mulsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
-				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
-				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
-				if(left != right)
-					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
-				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				asmWrite[name] = name;
+				asmRead[left] = lhs;
+				asmRead[right] = rhs;
+				usedRegisters["xmm0"] = "", usedRegisters["xmm1"] = "", usedRegisters["cc"] = "";
+				dumpClobber();
 				cout << ");" << endl;
-				//cout << name << " = " << lhs << " * " << rhs << ";" << endl;
 			}
 			else if (op == "/")
 			{
@@ -128,11 +157,11 @@ public:
 				cout << "	\"movsd \%[" << left << "], \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"divsd \%\%xmm0, \%\%xmm1 \\n\\t\"" << endl;
 				cout << "	\"movsd \%\%xmm1, \%[" << name << "] \\n\\t\"" << endl;
-				cout << ": [" << name << "] \"=x\" (" << name << ")" << endl;
-				cout << ": [" << left << "] \"x\" (double(" << lhs << "))";
-				if(left != right)
-					cout << ",\n" << "  [" << right << "] \"x\" (double(" << rhs << "))" << endl;
-				cout << ": \"xmm0\", \"xmm1\",\"cc\"" << endl;
+				asmWrite[name] = name;
+				asmRead[left] = lhs;
+				asmRead[right] = rhs;
+				usedRegisters["xmm0"] = "", usedRegisters["xmm1"] = "", usedRegisters["cc"] = "";
+				dumpClobber();
 				cout << ");" << endl;
 			}
 			else if (op == "%")
@@ -146,7 +175,10 @@ public:
 					if(rhs[0] == '"')
 						cout << "printf(" << rhs.insert(rhs.size()-1,"\\n") << ");" << endl;
 					else
+					{
+						
 						cout << "printf(\"\%.16g\\n\"," << rhs << ");" << endl;
+					}
 				}
 				else if (lhs == "io.read")
 					cout << "char temp[256];" << endl <<"fgets(temp,255,stdin);" << endl << name << "= atof(temp);" << endl;	
@@ -199,9 +231,12 @@ public:
 			cout << this->name <<":"<< endl;
 			for(auto i: instructions)
 				i.dumpC();
+			//TODO Dumpa alla variableer för ASMen precis innan den går till ett annat block
 			if (tExit)
+			{
             	cout << "goto " << tExit->name << ";";
-            if (fExit)
+            }
+			if (fExit)
 				cout << "else goto " << fExit->name << ";";
 			if(tExit == NULL)
 				cout << "return 0;";
